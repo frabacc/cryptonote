@@ -187,12 +187,19 @@ effettiva.
 
 Gli indirizzi Bitcoin classici, una volta pubblicati, diventano
 identificatori univoci per ogni pagamento in entrata, collegandoli tra
-loro e legandoli al destinatario. Viene proposta una soluzione che
+loro e legandoli al destinatario. 
+
+ ![](media/image6.png)
+
+Viene proposta una soluzione che
 consente all\'utente di pubblicare un singolo indirizzo e ricevere
 pagamenti incondizionati e non collegabili. La destinazione di ciascun
 output (di default) è una chiave pubblica unica, derivata
 dall\'indirizzo del destinatario e dall\'iniezione di dati casuali da
 parte del mittente.\
+
+![](media/image7.png)
+
 Innanzitutto, il mittente esegue il protocollo di scambio Diffie-Hellman
 per ottenere un segreto condiviso dai suoi dati e da una metà
 dell\'indirizzo. Poi calcola una chiave di destinazione una tantum,
@@ -216,6 +223,8 @@ Una sequenza di transazione standard procede come segue:
     chiavi pubbliche uniche: chiavi diverse dei destinatari (𝐴𝑖,𝐵𝑖)
     implicano 𝑃𝑖​ diversi anche con lo stesso 𝑟.
 
+    ![](media/image3.png)
+
 4.  Bob controlla ogni transazione in arrivo con la sua chiave privata
     (a, b), calcolando 𝑃′=𝐻𝑠(𝑎𝑅)𝐺+𝐵. Se la transazione di Alice è
     presente, allora 𝑎𝑅=𝑎𝑟𝐺=𝑟𝐴 e 𝑃′=𝑃.
@@ -223,6 +232,8 @@ Una sequenza di transazione standard procede come segue:
 5.  Ora Bob può recuperare la chiave privata una tantum corrispondente:
     𝑥=𝐻𝑠(𝑎𝑅)+𝑏, così come 𝑃=𝑥𝐺. Può spendere questo output in qualsiasi
     momento firmando la transazione con 𝑥.
+
+    ![](media/image4.png)
 
 Di conseguenza, Bob riceve pagamenti in entrata associati a chiavi
 pubbliche una tantum che non possono essere collegate a un osservatore
@@ -252,6 +263,8 @@ da un insieme di chiavi. Il vero firmatario è indistinguibile dagli
 altri proprietari di chiavi fino a quando non produce la seconda firma
 sotto la stessa coppia di chiavi.
 
+![](media/image5.png)
+
 - **GEN**: Il firmatario sceglie casualmente una chiave segreta 𝑥 ∈
 \[1,𝑙−1\] e calcola la chiave pubblica corrispondente 𝑃=𝑥𝐺. Inoltre,
 calcola un\'altra chiave pubblica 𝐼=𝑥𝐻𝑝(𝑃) chiamata \"immagine della
@@ -265,9 +278,10 @@ Si sceglie casualmente un elemento casuale da {qi \| i = 1 \... n} e {wi
 \| i = 1 \... n, i ≠ s} da (1 \... l) e effettua i seguenti passaggi:\
 ![Immagine che contiene testo, schermata, Carattere, numero Descrizione
 generata automaticamente](media/image1.png)
-Chi verifica controlla se  ![](media/image2.png).\
+Chi verifica controlla se $$\sum_{i=1}^{n} ci =^? H_s(m,L_1',...,L_n',R_1',...R_n') \mod l $$
+
 Se questa uguaglianza è vera, chi verifica esegue l\'algoritmo **LNK**,
-altrimenti respinge la firma.\
+altrimenti respinge la firma.
 - **LNK**: Chi verifica controlla se I è stata utilizzata in firme passate
 (questi valori sono memorizzati nell\'insieme I). Un doppio utilizzo
 significa che sono state prodotte due firme con la stessa chiave
@@ -282,7 +296,7 @@ uno 𝐻𝑝(𝑃𝑖)=𝐼⋅𝑥\^−1. Se 𝑥→𝐼 è iniettiva:
     - Nessuno può recuperare la chiave pubblica dall\'immagine della chiave
 e identificare il firmatario;
 
-    - Il firmatario non può fare due firme con I diverse e lo stesso x.\
+    - Il firmatario non può fare due firme con I diverse e lo stesso x.
 
 Con una firma ad anello one-time, Bob può efficacemente nascondere
 l'output di Alice (cioè, il suo input) tra gli altri: tutti i possibili
@@ -306,7 +320,7 @@ privata (a, b) e generare una chiave pubblica (A, B) per iniziare a
 ricevere e inviare transazioni anonime. Per ogni output Bob recupera
 coppie di chiavi di transazione uniche (pi, Pi) che non possono essere
 collegate tra loro o alla sua chiave pubblica. Può spendere ognuna di
-esse, firmando ogni input con una firma ad anello non tracciabile.\
+esse, firmando ogni input con una firma ad anello non tracciabile.
 
 ## Miglioramenti nella PoW rispetto a Bitcoin
 
@@ -374,14 +388,17 @@ falsi con dati di lavoro arbitrari (valori di nonce).
 ## Equità nella distibuzione
 
 Il limite superiore per l\'ammontare complessivo delle monete digitali
-CryptoNote è anche digitale: MSupply = 2\^64-1 unità atomiche. Questa è
+CryptoNote è anche digitale: $$\text{MSupply} = 2^{64} - 1$$
+unità atomiche. Questa è
 una restrizione naturale basata solo su limiti di implementazione, non
 su intuizioni come \"N monete dovrebbero essere sufficienti per
 chiunque\".
 
 Per garantire la regolarità del processo di emissione, utilizziamo la
-seguente formula per le ricompense dei blocchi: BaseReward = (MSupply -
-A) / 2\^18, dove A è l\'ammontare di monete generate precedentemente
+seguente formula per le ricompense dei blocchi: $$
+\text{BaseReward} = (\text{MSupply} - A) >> 18 $$
+
+dove A è l\'ammontare di monete generate precedentemente
 
 CryptoNote contiene un algoritmo di targeting che cambia la difficoltà
 di ogni blocco. Questo migliora il tempo di reazione del sistema quando
@@ -396,15 +413,25 @@ dividerlo per il tempo impiegato per completare il lavoro. La misura del
 lavoro sono i valori di difficoltà corrispondenti in ogni blocco.
 
 Gli utenti pagano gli altri per memorizzare la blockchain e dovrebbero
-avere il diritto di votare per la sua dimensione. Ogni minatore si
+avere il diritto di votare per la sua dimensione. Ogni miner si
 confronta con il compromesso tra bilanciare i costi e il profitto dalle
 commissioni, quindi stabilisce il proprio \"limite flessibile\" per la
 creazione dei blocchi. Inoltre, la regola fondamentale per la dimensione
 massima del blocco è necessaria per evitare che la blockchain venga
 inondatata da transazioni fasulle, tuttavia questo valore non dovrebbe
 essere codificato duramente. Sia MN il valore mediano delle dimensioni
-degli ultimi N blocchi. Allora il \"limite rigido\" per la dimensione
-dei blocchi accettati è 2 · MN.
+degli ultimi N blocchi.\
+Allora il \"limite rigido\" per la dimensione dei blocchi accettati è 2 · MN.
+
+Un miner ha ancora la possibilità di riempire un blocco con le sue transazioni senza commissioni fino alla dimensione massima di 2 MB. Anche se solo la maggioranza dei miners può spostare il valore mediano, esiste comunque la possibilità di gonfiare la blockchain e produrre un carico aggiuntivo sui nodi. Per scoraggiare i partecipanti malevoli dal creare blocchi grandi, introduciamo una funzione di penalità:
+
+$$
+\text{NewReward} = \text{BaseReward} \times \left( \frac{\text{DimBlocco}}{MN} - 1 \right)^2
+$$
+
+Questa regola viene applicata solo quando la DimBlocco è maggiore della dimensione minima del blocco gratuito che dovrebbe essere vicina a $$
+\max(10\, \text{kb}, M_N \cdot 110\%) $$ I miners sono autorizzati a creare blocchi di "dimensioni usuali" e persino a superarle con profitto quando le commissioni complessive superano la penalità.\
+ Tuttavia, è improbabile che le commissioni crescano in modo quadratico a differenza del valore della penalità, quindi ci sarà un equilibrio.
 
 
 
