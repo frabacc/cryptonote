@@ -445,11 +445,11 @@ CryptoNight è basato su delle primitive crittografiche specifiche, composte da
 
 L'input della funzione di hash (in Monero, ad esempio, di dimensione 80 bytes) viene passato nella funzione di hash di Keccak. Viene scelta con `b = 1600`, quindi con dimensione dell'output di 1600 bit o 200 bytes e con dimensione del digest di 512 bits o 64 bytes con il parametro `c = 512`. Questi byte saranno definiti come **Keccak state**
 
-I byte `0..31` risultanti dall'output della funzione vengono scelti come chiave per l'algoritmo di cifratura AES-256. La chiave non viene utilizzata così com'è, ma viene espansa in 10 sotto-chiavi, con lo scopo di rendere l'algoritmo più sicuro, utilizzando più di una chiave AES per cifrare. L'espansione viene fatta dividendo la chiave in 8 parole di 4 byte ciascuna. Per generare le due parole rimaste al fine completare i 10 *key rounds* [^1], si esegue la rotazione dell'ultima parola generata, effettuata con la funzione `RotWord()`, che esegue una permutazione ciclica e avendo come input [*a0,a1,a2,a3*] ritorna [*a1,a2,a3,a4*]. Successivamente vengono sostituiti i byte utilizzando una **S-Box** e viene eseguito uno XOR con una costante chiamata `Rcon` (Round constant). I dettagli di una pseudo implementazione del codice per l'espansione della chiave è presente qui. [1^]
+I byte `0..31` risultanti dall'output della funzione vengono scelti come chiave per l'algoritmo di cifratura AES-256. La chiave non viene utilizzata così com'è, ma viene espansa in 10 sotto-chiavi, con lo scopo di rendere l'algoritmo più sicuro, utilizzando più di una chiave AES per cifrare. L'espansione viene fatta dividendo la chiave in 8 parole di 4 byte ciascuna. Per generare le due parole rimaste al fine completare i 10 *key rounds* [^20], si esegue la rotazione dell'ultima parola generata, effettuata con la funzione `RotWord()`, che esegue una permutazione ciclica e avendo come input [*a0,a1,a2,a3*] ritorna [*a1,a2,a3,a4*]. Successivamente vengono sostituiti i byte utilizzando una **S-Box** e viene eseguito uno XOR con una costante chiamata `Rcon` (Round constant). I dettagli di una pseudo implementazione del codice per l'espansione della chiave è presente qui. [21^]
 
 ![](media/image8.png)
 
-Viene allocato uno **scratchpad** di 2097152 bytes.[^2] Dall'output di Keccak vengono estratti i byte `64...191` e divisi in 8 blocchi di 16 byte ciascuno. Ogni blocco viene cifrato utilizzando il seguente codice: 
+Viene allocato uno **scratchpad** di 2097152 bytes.[^22] Dall'output di Keccak vengono estratti i byte `64...191` e divisi in 8 blocchi di 16 byte ciascuno. Ogni blocco viene cifrato utilizzando il seguente codice: 
 
 
 \[
@@ -463,7 +463,7 @@ La funzione `aes_round` esegue un round di cifratura AES, che consiste nell'eseg
     
 - SubBytes: ogni byte del blocco viene sostituito con un valore criptato utilizzando una tabella di sostituzione *S-Box*.
 - ShiftRows: le righe del blocco vengono spostate di una posizione.
-- MixColumns: le colonne del blocco vengono mescolate utilizzando una matrice 4x4 nota come MDS[3^], progettata per essere difficile da invertire. 
+- MixColumns: le colonne del blocco vengono mescolate utilizzando una matrice 4x4 nota come MDS[23^], progettata per essere difficile da invertire. 
 - Infine, il risultato è XORato con la chiave specifica per quel round. A differenza della classica funzione AES per cifrare, il primo e l'ultimo round quando si usano le *round-keys* non sono speciali.
 
 I blocchi che ne risultano vengono riportati nei primi 128 byte dello scratchpad. Questi ultimi vengono cifrati nuovamente nello stesso modo, e il risultato viene scritto nei successivi 128 byte. Questa operazione viene effettuata 10 volte, per riempire tutto lo scratchpad di dati pseudo-randomici. I byte `64..191`, che chiameremo *payload*, sono cifrati in questo modo 10 volte. Questo diagramma mostra le operazioni effettuate in questa prima parte
@@ -528,7 +528,7 @@ Successivamente farò un immagine su questa cosa, ricordatemelo.
 
 ## Seconda parte: Loop memory-hard
 
-La seconda parte si compone di un algoritmo che mantiene lo stato composto da 52488 iterazioni[^4]. Si utilizzano operazioni CPU-friendly, come la cifratura AES, XOR, moltiplicazioni e addizioni di 8 byte, per avere come unico 
+La seconda parte si compone di un algoritmo che mantiene lo stato composto da 52488 iterazioni[^24]. Si utilizzano operazioni CPU-friendly, come la cifratura AES, XOR, moltiplicazioni e addizioni di 8 byte, per avere come unico 
 
 
 Prima di eseguire il loop utilizzato per rendere questa funzione di hash *memory-hard*, viene eseguito lo XOR sui byte `0..31` e i byte `32..63` dell'output dell'hashing Keccak. I 32 byte risultanti vengono utilizzati per inizializzare due variabili da 16 byte ciascuna, `a` e `b`. Queste variabili vengono utilizzate nel loop principale, composte da quattro passaggi:
@@ -743,18 +743,18 @@ Lecture Notes in Computer Science, pages 426-444. Springer, 2003.
 
 [17^] Fabien Coelho, Exponential Memory-Bound Functions for Proof of Work Protocols, 2005
 
-[18^] [31] Colin Percival, Stronger Key Derivation via Sequential Memory-Hard Functions,
+[18^] Colin Percival, Stronger Key Derivation via Sequential Memory-Hard Functions,
 presented at BSDCan'09, May 2009
 
 [19^] http://litecoin.org
 
-[1^][https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf]
+[20^][https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf]
 
-[2^][https://cryptonote.org/cns/cns008.txt]
+[21^][https://cryptonote.org/cns/cns008.txt]
 
-[3^][https://keccak.team/files/NoteOnKeccakParametersAndUsage.pdf]
+[22^][https://keccak.team/files/NoteOnKeccakParametersAndUsage.pdf]
 
-[4^][https://docs.monero.study/proof-of-work/cryptonight/]
+[23^][https://docs.monero.study/proof-of-work/cryptonight/]
 
 
 
