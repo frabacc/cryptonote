@@ -7,7 +7,7 @@ Questo innovativo protocollo di consenso viene presentato come una fattibile alt
 ## Sviluppo dello standard CryptoNight e adozione
 
 Qualche mese dopo, gli sviluppatori Seigen, Max Jameson, Tuomo Nieminen, Neocortex e Antonio M. Juarez, pubblicano un documento, facente parte degli standard di CryptoNote, con all'interno la descrizione della funzione di hash per la proof-of-work di CryptoNote, chiamata **CryptoNight**.
-Viene presentata come una funzione *memory-hard*, quindi  resistente come algoritmo crittografico agli attachi effettuati cercando di ridurre la complessità aumentando le risorse hardware, progettata per essere inefficiente su GPU, FPGA e ASICs rispetto alle classiche funzioni utilizzate nella *proof-of-work*, come ad esempio *SHA-256*. 
+
 
 **Bytecoin (BCN)** è stata la prima criptomoneta ad adottare il protocollo di consenso CryptoNote, scelta giustificata dalla volontà dei fondatori di avere una criptomoneta volta alla privacy finanziaria, attraverso una protezione completa dell'utente che utilizza gli strumenti finanziari messi a disposizione, dalle transazioni all'identità personale. Come altre differenze, abbiamo l'aggiustamento della difficoltà di minare nuova moneta ad ogni blocco, generando un blocco ogni due minuti circa. Nonostante le buone premesse, la moneta oggi ha un *market cap* irrisorio e non è stata adottata a causa di svariati problemi: 
 - Inizialmente, la moneta è stata pre-minata, fornendo l'80% delle monete ad un gruppo di *early adopters*, generando una distribuzione iniqua e sleale
@@ -24,19 +24,6 @@ Di seguito forniremo una panoramica sulla tecnologia CryptoNote, presentando un 
 # Aspetti tecnici di CryptoNote 
 
 ## Privacy e Anonimato nel Cash Elettronico
-
-Bitcoin rappresenta una implementazione di successo del concetto di cash
-elettronico p2p, provando la sua semplicità (come i soldi cartacei) e la
-sua convenienza (come le carte di credito).\
-Sfortunatamente Bitcoin ha alcune carenze purtroppo, per esempio la
-natura del sistema distribuito non è flessibile , prevenendo
-l'implementazione di nuove features fino a quando quasi tutti gli utenti
-della rete aggiornano i loro client. In questo modello non flessibile è
-più semplice pensare ad un nuovo progetto che invece cercare di fixare
-quello vecchio. CryptoNote propone soluzioni ai difetti principali di
-Bitcoin , nome che enfatizza la futura svolta nel mondo del cash
-elettronico.
-
 
 Privacy e anonimato sono gli aspetti più importanti del cash
 elettronico. I pagamenti peer-to-peer cercano di essere nascosti dal
@@ -432,6 +419,305 @@ $$
 Questa regola viene applicata solo quando la DimBlocco è maggiore della dimensione minima del blocco gratuito che dovrebbe essere vicina a $$
 \max(10\, \text{kb}, M_N \cdot 110\%) $$ I miners sono autorizzati a creare blocchi di "dimensioni usuali" e persino a superarle con profitto quando le commissioni complessive superano la penalità.\
  Tuttavia, è improbabile che le commissioni crescano in modo quadratico a differenza del valore della penalità, quindi ci sarà un equilibrio.
+
+# Funzione di hash CryptoNight
+
+In questo capitolo parleremo del cuore del protocollo di consenso CryptoNote, la funzione di hash **CryptoNight**, completa con le sue specifiche e il suo funzionamento. L'obiettivo era il design di una funzione che fosse facilmente eseguibile da CPU consumer-grade, disponibili nei computer normali attraverso l'esecuzione di cifrature AES, la moliplicazione di numeri a 64 bit e l'utilizzo di uno scratchpad che, come da specifiche dell'algoritmo, entra nella dimensione di una classica cache L3 di un processore dell'epoca (circa 2MB). La volontà, più ambiziosa, era quella di rendere la funzione non facilmente computabile dagli ASICs.
+Viene presentata come una funzione *memory-hard*, quindi resistente come algoritmo crittografico agli attachi effettuati cercando di ridurre la complessità aumentando le risorse hardware, progettata per essere inefficiente su GPU, FPGA e ASICs rispetto alle classiche funzioni utilizzate nella *proof-of-work*, come ad esempio *SHA-256*. 
+
+### Definizioni 
+
+- Una **funzione di hash** è una funzione che trasforma dati di dimensione arbitraria in dati di dimensione fissata. L'operazione deve essere simile ad una funzione casuale per garantire la distribuzione uniforme dei risultati, indipendentemente dalla natura dei dati o dalle precedenti iterazioni dei dati.
+
+- **Scratchpad**: è una grande area di memoria temporanea e non persistente dove si possono eseguire calcoli senza alcuna conseguenza sullo stato a lungo termine.
+
+- **Memory-hard**: è una caratteristica delle funzioni di hash per il quale sono difficili da invertire, cioè trovare il dato originale a partire dal suo output, anche se si hanno risorse informatiche infinite.
+
+### Primitive crittografiche utilizzate
+
+CryptoNight è basato su delle primitive crittografiche specifiche, composte da
+- Cifratura AES a 256bit
+- 5 funzioni di hash, finaliste nella competizione per la ricerca di un nuovo standard per le funzioni di hash del 2012 condotto dal NIST:
+    - Keccak
+    - BLAKE
+    - Groestl
+    - JH
+    - Skein
+
+## Prima parte: Inizializzazione dello scratchpad
+
+L'input della funzione di hash (in Monero, ad esempio, di dimensione 80 bytes) viene passato nella funzione di hash di Keccak. Viene scelta con `b = 1600`, quindi con dimensione dell'output di 1600 bit o 200 bytes e con dimensione del digest di 512 bits o 64 bytes con il parametro `c = 512`. Questi byte saranno definiti come **Keccak state**
+
+I byte `0..31` risultanti dall'output della funzione vengono scelti come chiave per l'algoritmo di cifratura AES-256. La chiave non viene utilizzata così com'è, ma viene espansa in 10 sotto-chiavi, con lo scopo di rendere l'algoritmo più sicuro, utilizzando più di una chiave AES per cifrare. L'espansione viene fatta dividendo la chiave in 8 parole di 4 byte ciascuna. Per generare le due parole rimaste al fine completare i 10 *key rounds* [^1], si esegue la rotazione dell'ultima parola generata, effettuata con la funzione `RotWord()`, che esegue una permutazione ciclica e avendo come input [*a0,a1,a2,a3*] ritorna [*a1,a2,a3,a4*]. Successivamente vengono sostituiti i byte utilizzando una **S-Box** e viene eseguito uno XOR con una costante chiamata `Rcon` (Round constant). I dettagli di una pseudo implementazione del codice per l'espansione della chiave è presente qui. [1^]
+
+![](media/image8.png)
+
+Viene allocato uno **scratchpad** di 2097152 bytes.[^2] Dall'output di Keccak vengono estratti i byte `64...191` e divisi in 8 blocchi di 16 byte ciascuno. Ogni blocco viene cifrato utilizzando il seguente codice: 
+
+
+\[
+\text{for } i \in \{0,\ldots,9\} \Rightarrow \\
+\quad block = AES_{\text{round}}(block, \mathbf{K}_i)
+\]
+
+### Funzione cifratura AES
+
+La funzione `aes_round` esegue un round di cifratura AES, che consiste nell'eseguire i passaggi seguenti sul blocco:
+    
+- SubBytes: ogni byte del blocco viene sostituito con un valore criptato utilizzando una tabella di sostituzione *S-Box*.
+- ShiftRows: le righe del blocco vengono spostate di una posizione.
+- MixColumns: le colonne del blocco vengono mescolate utilizzando una matrice 4x4 nota come MDS[3^], progettata per essere difficile da invertire. 
+- Infine, il risultato è XORato con la chiave specifica per quel round. A differenza della classica funzione AES per cifrare, il primo e l'ultimo round quando si usano le *round-keys* non sono speciali.
+
+I blocchi che ne risultano vengono riportati nei primi 128 byte dello scratchpad. Questi ultimi vengono cifrati nuovamente nello stesso modo, e il risultato viene scritto nei successivi 128 byte. Questa operazione viene effettuata 10 volte, per riempire tutto lo scratchpad di dati pseudo-randomici. I byte `64..191`, che chiameremo *payload*, sono cifrati in questo modo 10 volte. Questo diagramma mostra le operazioni effettuate in questa prima parte
+```
+                               +-----+
+                               |Input|
+                               +-----+
+                                  |
+                                  V
+                             +--------+
+                             | Keccak |
+                             +--------+
+                                  |
+                                  V
+   +-------------------------------------------------------------+
+   |                         Final state                         |
+   +-------------+--------------+---------------+----------------+
+   | Bytes 0..31 | Bytes 32..63 | Bytes 64..191 | Bytes 192..199 |
+   +-------------+--------------+---------------+----------------+
+          |                             |
+          V                             |
+   +-------------+                      V
+   | Round key 0 |------------+---+->+-----+
+   +-------------+            |   |  |     |
+   |      .      |            |   |  |     |
+   |      .      |            |   |  | AES |
+   |      .      |            |   |  |     |
+   +-------------+            |   |  |     |
+   | Round key 9 |----------+-|-+-|->+-----+                 +---+
+   +-------------+          | | | |     |                    |   |
+                            | | | |     +------------------->|   |
+                            | | | |     |                    |   |
+                            | | | |     V                    |   |
+                            | | | +->+-----+                 |   |
+                            | | |    |     |                 | S |
+                            | | |    |     |                 |   |
+                            | | |    | AES |                 | c |
+                            | | |    |     |                 |   |
+                            | | |    |     |                 | r |
+                            | | +--->+-----+                 |   |
+                            | |         |                    | a |
+                            | |         +------------------->|   |
+                            | |         .                    | t |
+                            | |         .                    |   |
+                            | |         .                    | c |
+                            | |         +------------------->|   |
+                            | |         |                    | h |
+                            | |         V                    |   |
+                            | +----->+-----+                 | p |
+                            |        |     |                 |   |
+                            |        |     |                 | a |
+                            |        | AES |                 |   |
+                            |        |     |                 | d |
+                            |        |     |                 |   |
+                            +------->+-----+                 |   |
+                                        |                    |   |
+                                        +------------------->|   |
+                                                             |   |
+                                                             +---+
+```                                           
+Successivamente farò un immagine su questa cosa, ricordatemelo.
+
+## Seconda parte: Loop memory-hard
+
+La seconda parte si compone di un algoritmo che mantiene lo stato composto da 52488 iterazioni[^4]. Si utilizzano operazioni CPU-friendly, come la cifratura AES, XOR, moltiplicazioni e addizioni di 8 byte, per avere come unico 
+
+
+Prima di eseguire il loop utilizzato per rendere questa funzione di hash *memory-hard*, viene eseguito lo XOR sui byte `0..31` e i byte `32..63` dell'output dell'hashing Keccak. I 32 byte risultanti vengono utilizzati per inizializzare due variabili da 16 byte ciascuna, `a` e `b`. Queste variabili vengono utilizzate nel loop principale, composte da quattro passaggi:
+
+1. Il codice calcola l'indirizzo di memoria della variabile `a` e lo scrive sullo scratchpad. Per convertire un valore di 16 byte in un indirizzo nello scratchpad, bisogna interpretarlo come un intero rappresentato in little-endian, con gli ultimi 21 bit che rappresentano l'indice all'interno dei byte; gli ultimi 4 bit vengono comunque cancellati per ottenere l'allinamento a 16 byte, dato che i dati vengono letti e scritti sullo scratchpad in blocchi da 16 byte.
+
+2. Successivamente, viene applicatata la funzione per cifrare il blocco `aes_round` sull'indirizzo letto dallo scratchpad, con il valore di `a` usato come chiave. 
+
+3. Il risultato di questa operazione passa da uno XOR e il valore della variabile `b`, oltre ad essere scritto sullo scratchpad, sempre come indirizzo di memoria. 
+
+4. L'indirizzo ricavato viene letto dallo scratchpad e viene effettuata l'operazione di moltiplicazione chiamata `8byte_mul`. Questa funzione, usa i primi 8 byte di ogni argomento, interpretati da essa come `uint_64`, con rappresentazione little-endian. Il risultato di questa operazione viene convertito in 16 byte, concludendo l'operazione di moltiplicazione scambiando le due metà del risultato (8 byte ciascuna)
+
+5. Il valore di `a` viene aggiunto, componente per componente in modulo 2^64, al risultato della moltiplicazione con le due metà già scambiate attraverso la funzione `8byte_add` che utilizza i primi 64 bit come intero senza segno, con il risultato che viene portato in 16 byte e scritto nello scratchpad.
+
+6. Infine, viene letto l'indirizzo del risultato della cifratura dell'indirizzo della variabile di `a`, utilizzando come chiave `a` (il risultato del secondo passaggio) e viene effettuata un operazione di XOR con il risultato della addizione precedente.
+
+7. Il risultato dell'operazione 6 viene utilizzato come nuovo valore della variabile `a`, mentre il risultato del passaggio 2 viene utilizzato come nuova variabile `b`.
+
+Il diagramma presente illustra le operazioni eseguite nel loop *memory-hard*:
+
+```
+   +-------------------------------------------------------------+
+   |                         Final state                         |
+   +-------------+--------------+---------------+----------------+
+   | Bytes 0..31 | Bytes 32..63 | Bytes 64..191 | Bytes 192..199 |
+   +-------------+--------------+---------------+----------------+
+          |             |
+          |   +-----+   |
+          +-->| XOR |<--+
+              +-----+
+               |   |
+          +----+   +----+
+          |             |
+          V             V
+        +---+         +---+
+        | a |         | b |
+        +---+         +---+
+          |             |
+   --------------------- REPEAT 524288 TIMES ---------------------
+          |             |                            address +---+
+          +-------------|----------------------------------->|   |
+          |   +-----+   |                               read |   |
+          +-->| AES |<--|------------------------------------|   |
+          |   +-----+   V                                    |   |
+          |      |   +-----+                                 | S |
+          |      +-->| XOR |                                 |   |
+          |      |   +-----+                           write | c |
+          |      |      |    +------------------------------>|   |
+          |      |      +----+                       address | r |
+          |      +------------------------------------------>|   |
+          |      |  +-----------+                       read | a |
+          |      +->| 8byte_mul |<--+------------------------|   |
+          |      |  +-----------+   |                        | t |
+          |      |        |         |                        |   |
+          |      |        V         |                        | c |
+          |      |  +-----------+   |                        |   |
+          +------|->| 8byte_add |   |                        | h |
+                 |  +-----------+   |                        |   |
+                 |        |         |                  write | p |
+                 |        +---------|----------------------->|   |
+                 |        |         |                        | a |
+                 |        V         |                        |   |
+                 |     +-----+      |                        | d |
+                 |     | XOR |<-----+                        |   |
+                 |     +-----+                               |   |
+                 +------+ |                                  |   |
+          +-------------|-+                                  |   |
+          |             |                                    +---+
+   -------------------------- END REPEAT -------------------------
+
+```
+
+
+## Terza parte: Calcolo del risultato
+
+Dopo aver effettuato le operazioni memory-hard, i byte `32..63` dati dall'hashing effettuato con Keccak vengono espansi in 10 *round-keys* come nella prima parte. 
+\
+I byte `64..191` dello stesso hashing vengono presi e viene effettuato uno XOR con i primi 128 byte dello scratchpad. Il risultato di questa operazione viene criptato con la funzione `aes_round` come nella prima parte, ma con le chiavi ricavate dall'espansione dei byte `32..63`. 
+\
+Il risultato di questa cifratura viene passato da uno XOR con i 128 bytes successivi dello scratchpad, cifrati nuovamente con la stessa funzione, fino ad arrivare agli ultimi 128 byte dello scratchpad. Dopo aver cifrato gli ultimi 128 byte viene effettuato lo XOR con gli ultimi 128 byte dello scratchpad.
+\
+I byte `64..191` del **Keccak state* vengono sostituiti con Il risultato dell'operazione effettuata in precedenza. Tutti i 200 byte dello stato di Keccak vengono passati da una permutazione, chiamata *Keccak-f*, con parametro `b = 1600`, l'implementazione più sicura. Questa operazione viene effettuate per mescolare i bit dello stato Keccak, in modo da rendere difficile la criptoanalisi del flusso di dati. 
+\
+Infine, i due bit più a destra vengono utilizzati per selezionare una funzione di hash:
+- 0: BLAKE-256 [5^]
+- 1: Groest1-256 [6^]
+- 2: JH-256 [7^]
+- 3: Skein-256 [8^]
+
+L'output di questa funzione di hash viene applicato al Keccak state, e l'hash risultante è l'output di CryptoNight.
+Il diagramma sottostante rappresenta il calcolo del risultato:
+```
+ +-------------------------------------------------------------+
+   |                         Final state                         |
+   +-------------+--------------+---------------+----------------+
+   | Bytes 0..31 | Bytes 32..63 | Bytes 64..191 | Bytes 192..199 |
+   +-------------+--------------+---------------+----------------+
+         |                |             |                |
+         |       +--------+             |                |
+         |       V        |             |                |
+         |+-------------+ |             |                |
+         || Round key 0 |-|---+---+     |                |
+         |+-------------+ |   |   |     |                |
+         ||      .      | |   |   |     |                |
+         ||      .      | |   |   |     |                |
+         ||      .      | |   |   |     |                |
+         |+-------------+ |   |   |     |                |
+   +---+ || Round key 9 |-|-+-|-+ |     V                |
+   |   | |+-------------+ | | | | |  +-----+             |
+   |   |-|----------------|-|-|-|-|->| XOR |             |
+   |   | |                | | | | |  +-----+             |
+   | S | |                | | | | |     |                |
+   |   | |                | | | | |     V                |
+   | c | |                | | | | +->+-----+             |
+   |   | |                | | | |    |     |             |
+   | r | |                | | | |    |     |             |
+   |   | |                | | | |    | AES |             |
+   | a | |                | | | |    |     |             |
+   |   | |                | | | |    |     |             |
+   | t | |                | | | +--->+-----+             |
+   |   | |                | | |         |                |
+   | c | |                | | |         V                |
+   |   | |                | | |      +-----+             |
+   | h |-|----------------|-|-|----->| XOR |             |
+   |   | |                | | |      +-----+             |
+   | p | |                | | |         |                |
+   |   | |                | | |         .                |
+   | a | |                | | |         .                |
+   |   | |                | | |         .                |
+   | d | |                | | |         |                |
+   |   | |                | | |         V                |
+   |   | |                | | |      +-----+             |
+   |   |-|----------------|-|-|----->| XOR |             |
+   |   | |                | | |      +-----+             |
+   +---+ |                | | |         |                |
+         |                | | |         V                |
+         |                | | +----->+-----+             |
+         |                | |        |     |             |
+         |                | |        |     |             |
+         |                | |        | AES |             |
+         |                | |        |     |             |
+         |                | |        |     |             |
+         |                | +------->+-----+             |
+         |                |             |                |
+         V                V             V                V
+   +-------------+--------------+---------------+----------------+
+   | Bytes 0..31 | Bytes 32..63 | Bytes 64..191 | Bytes 192..199 |
+   +-------------+--------------+---------------+----------------+
+   |                       Modified state                        |
+   +-------------------------------------------------------------+
+                                  |
+                                  V
+                            +----------+
+                            | Keccak-f |
+                            +----------+
+                             |    |
+                 +-----------+    |
+                 |                |
+                 V                V
+          +-------------+  +-------------+
+          | Select hash |->| Chosen hash |
+          +-------------+  +-------------+
+                                  |
+                                  V
+                          +--------------+
+                          | Final result |
+                          +--------------+
+```
+
+# Problemi di CryptoNight
+
+
+
+
+[1^][https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf]
+
+[2^][https://cryptonote.org/cns/cns008.txt]
+
+[3^][https://keccak.team/files/NoteOnKeccakParametersAndUsage.pdf]
+
+[4^][https://docs.monero.study/proof-of-work/cryptonight/]
+
+
+
+
+
 
 
 
