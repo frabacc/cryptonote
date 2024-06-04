@@ -25,68 +25,58 @@ Di seguito forniremo una panoramica sulla tecnologia CryptoNote, presentando un 
 
 ## Privacy e Anonimato nel Cash Elettronico
 
-Privacy e anonimato sono gli aspetti più importanti del cash
-elettronico. I pagamenti peer-to-peer cercano di essere nascosti dal
-punto di vista di terze parti, una netta differenza rispetto alle banche
-tradizionali. In generale le compagnie non vogliono rivelare le loro
-transizioni interne e le persone comuni non vogliono comunicare nessuna
-informazione in merito alle spese personali.
+Privacy e anonimato sono aspetti fondamentali del cash
+elettronico. I pagamenti peer-to-peer mirano a rimanere nascosti agli occhi di terze parti, una netta differenza rispetto alle banche
+tradizionali. In generale le aziende non vogliono rivelare le loro
+transizioni interne e le persone comuni desiderano mantenere riservate le proprie spese personali.
 
 ## Proprietà di Irretracciabilità e Non Collegabilità
-
-Per definire il concetto di sistema di pagamento anonimo servono due
+T. Okamoto e K. Ohta hanno descritto sei criteri per un sistema di denaro elettronico ideale, uno dei quali riguarda la privacy: la relazione tra l'utente e i suoi acquisti deve essere irrintracciabile [1^].
+Dunque, per definire il concetto di sistema di pagamento anonimo servono due
 proprietà:
 
-- Irretracciabilità: per ogni transizione in entrata tutti i possibili
-mittenti sono equiprobabili
-- Non collegabilità: per due qualsiasi transizioni in uscita è
-impossibile dimostrare che sono state inviate dalla stessa persona
+- Irretracciabilità: per ogni transizione eseguita tutti i possibili
+mittenti devono avere la stessa probabilità di essere identificati.
+- Non collegabilità: per due qualsiasi transizioni in uscita deve essere
+impossibile dimostrare che siano state inviate dalla stessa persona
 
 ## Limiti di Bitcoin
 
 Bitcoin non soddisfa però il primo criterio, dato che tutte le
 transazioni che avvengono sono pubbliche e possono essere ricondotte a
 un\'unica origine e ad un unico destinatario.\
-Inoltre Bitcoin non sembra soddisfare neanche la seconda proprietà, da
-un attenta analisi della blockchain si potrebbe rilevare una connessione
+Anche se due partecipanti effettuano transazioni in modo indiretto, un metodo di ricerca del percorso ben progettato (ad esempio, l'algoritmo "A star" [2^]) può rivelare l'origine e il destinatario finale.\
+Inoltre Bitcoin non sembra soddisfare neanche la seconda proprietà, infatti, da
+un attenta analisi della blockchain e da alcune ricerche [3^],
+[4^], [5^],  si potrebbe rilevare una connessione
 tra gli utenti e le loro transazioni.\
-L'incapacità di Bitcoin di soddisfare le due proprietà ci porta a
-concludere che non si tratta si tratta di un sistema anonimo ma
-pseudo-anonimo. Sono state proposte diverse soluzioni, basate sull'idea
+L'incapacità di Bitcoin di soddisfare queste due proprietà ci porta a concludere che esso non rappresenta un sistema anonimo, ma piuttosto pseudo-anonimo.
+Sono state proposte diverse soluzioni [6^], [7^] basate sull'idea
 di mescolare diverse transazioni pubbliche e inviarle tramite un
-indirizzo intermediario ma questo porta un altro inconveniente ovvero
-una terza parte fidata.
+indirizzo intermediario ma questo porterebbe un altro inconveniente, ovvero una terza parte fidata.
 
 ## Problemi del Protocollo di Consenso di Bitcoin
 
-Il creatore di Bitcoin Satoshi Nakamoto ha descritto il protocollo di
-consenso come "one-CPU-one-vote", utilizzando SHA-256 per lo schema
-della proof-of-work. Dal momento che gli utenti votano per l\'ordine
-unico della cronologia delle transazioni, la ragionevolezza e la
-coerenza di questo processo sono condizioni fondamentali per l\'intero
-sistema.
+Il creatore di Bitcoin, Satoshi Nakamoto, ha descritto il protocollo di consenso come "un processore, un voto", utilizzando SHA-256 per il meccanismo di proof-of-work. Poiché gli utenti votano per determinare l'ordine unico della cronologia delle transazioni, la correttezza e la coerenza di questo processo sono condizioni fondamentali per l'intero sistema.
 Ci sono due aspetti da sottolineare:
 - La rete è fuori pericolo se il 51% del potere di mining è sotto il
 controllo di utenti onesti.
 - Il progresso del sistema è limitato perché se si vuole cambiare la
 versione del protocollo il cambiamento avverrà solo se supportato dalla
-stragrande maggioranza degli utenti.
+stragrande maggioranza degli utenti [8^].
 
-Questo permette di ipotizzare le proprietà che devono essere soddisfatte
-da una funzione di proof-of-work, ovvero questa funzione non deve
-consentire ad un partecipante della rete di ottenere un vantaggio
-significativo rispetto ad un altro, ci vuole una sorta di equivalenza
-tra hardware comune e dispositivi ad alto costo. SHA-256 non ha queste
+Questo permette di delineare le proprietà che una funzione di proof-of-work deve soddisfare: non deve consentire ad un partecipante della rete di ottenere un vantaggio
+significativo rispetto ad un altro, è necesaria una sorta di equivalenza
+tra hardware comune e dispositivi costisi. SHA-256 non ha queste
 caratteristiche: una GPU è più efficacie di una CPU e i dispositivi ASIC
-sono più potenti delle GPU.\
-Bitcoin crea quindi delle condizioni favorevoli per un ampio divario tra
-potere di voto dei partecipanti, violando il principio di
-"one-CPU-one-vote" dato che i proprietari di GPU e ASIC hanno molto più
-potere di voto rispetto a chi ha delle GPU.\
+sono più potenti delle GPUs [9^].\
+Bitcoin crea quindi delle condizioni favorevoli per un ampio divario nel
+potere di voto tra partecipanti, violando il principio di
+"un processore, un voto" : i proprietari di GPU e ASIC hanno infatti molto più potere di voto rispetto a coloro che utilizzano solo CPU.\
 \
 Il sistema di script in Bitcoin è troppo complicato e pesante.
 Potenzialmente consente di creare transazioni sofisticate, ma alcune
-delle sue funzionalità sono disabilitate per motivi di sicurezza.\
+delle sue funzionalità sono disabilitate per motivi di sicurezza[10^] [11^].
 
 
 ## Protocolli di Firma e schemi di CryptoNote
@@ -96,7 +86,7 @@ Una caratteristica importante è l'autonomia: il mittente non è tenuto a
 collaborare con altri utenti o terze parti per le transazioni.
 
 Lo schema di CryptoNote si basa su una primitiva crittografica chiamata
-*group signature*, inventata da D.Chaun e E. van Heyst che consente di
+*group signature*, inventata da *D. Chaun* e *E. van Heyst* [12^] che consente di
 firmare un messaggio per conto di un gruppo.\
 Dopo aver firmato, l'utente fornisce (per verificare) non la propria
 chiave pubblica, ma le chiavi di tutti gli utenti del suo gruppo. Chi
@@ -104,25 +94,19 @@ verifica vede che il vero firmatario è un membro di questo gruppo, ma
 non conosce la sua esatta identità.\
 Il protocollo originale prevedeva una Terza Parte Fiduciosa (Gestore del
 Gruppo), ed era l'unico che poteva risalire al reale firmatario. La
-versione successiva, *ring* *signature*, introdotta da Rivest ,era uno
-schema ad anello autonomo senza Responsabile del Gruppo e con revoca
-dell'anonimato. Sono apparse diverse modifiche successivamente, quella
-che viene adottata su CryptoNote si basa sullo studio "Traceable ring
-signature" di E. Fujisaki and K. Suzuki . Per distinguere l\'algoritmo
-originale da quello modificato , chiameremo quest\'ultima firma
+versione successiva, *ring* *signature*, introdotta da Rivest [13^] , prevedeva uno schema ad anello autonomo senza responsabile del gruppo e con revoca dell'anonimato.\
+Successivamente, sono apparse diverse modifiche, quella
+che viene adottata su CryptoNote per larga parte si basa sullo studio *Traceable ring
+signature* di E. Fujisaki and K. Suzuki [14^].\
+Per distinguere l\'algoritmo originale da quello modificato nella versione su CryptoNote, quest\'ultima firma verrà chiamata
 *one-time ring signature*, sottolineando la capacità dell\'utente di
-produrre una sola firma valida con la chiave privata.
+produrre una sola firma valida con la chiave privata.\
 La proprietà di tracciabilità è stata indebolita, mantenendo però quella
-di linkability per fornire unicità:
-la chiave pubblica può apparire in set di verifica stranieri e la chiave
-privata può essere usata per generare una firma anonima univoca. In caso
-di un tentativo di doppia spesa (un singolo unità di valuta digitale
-viene spesa più di una volta), queste due firme saranno collegate tra
-loro, ma rivelare l\'identità del firmatario non è necessario per i
-nostri scopi.
+di collegabilità (linkability) per fornire unicità:
+la chiave pubblica potrebbe comparire in molti set di verifica esterni e la chiave privata può essere utilizzata per generare una firma anonima unica. Nel caso di un tentativo di doppia spesa, queste due firme saranno collegate, ma non è necessario rivelare l'identità del firmatario.
 
 Alla base dell'algoritmo di firma si usa EdDSA, sviluppato e
-implementato da D.J. Bernstein, parametri comuni di dominio sono:
+implementato da *D.J. Bernstein* [15^], parametri comuni di dominio sono:
 - q: numero primo;
 - d: elemento of Fq;
 - E: equazione della curva ellittica;
@@ -131,8 +115,7 @@ implementato da D.J. Bernstein, parametri comuni di dominio sono:
 - Hs: funzione hash crittografica {0, 1} ∗ → Fq;
 - Hp: funzione hash deterministica E(Fq) → E(Fq).
 
-Una maggiore privacy richiede alcuni nuovi termini che non dovrebbero
-essere confusi con le entità di Bitcoin:
+Al fine di ottenere una maggiore privacy, sono necessari alcuni nuovi termini che non dovrebbero essere confusi con le entità di Bitcoin:
 
 - **private ec-key** è una chiave segreta standard di curva ellittica: un
 numero 𝑎 ∈ \[1,𝑙−1\]
@@ -142,14 +125,13 @@ punto 𝐴=𝑎𝐺;
 
 - **one-time keypair** è una coppia di chiavi ec-private e ec-public;
 
-- **private user key** è una coppia (a, b) di due diverse chiavi
+- **private user key** è una coppia *(a, b)* di due diverse chiavi
 ec-private;
 
-- **tracking key** è una coppia (a, B) di chiave ec-private e chiave
-ec-public (dove 𝐵=𝑏𝐺 e 𝑎≠𝑏);
+- **tracking key** è una coppia *(a, B)* di chiave ec-private e chiave
+ec-public *(dove 𝐵=𝑏𝐺 e 𝑎≠𝑏)*;
 
-- **public user key** è una coppia (A, B) di due chiavi ec-public derivate
-da (a, b);
+- **public user key** è una coppia *(A, B)* di due chiavi ec-public derivate da *(a, b)*;
 
 - **standard** **address** è una rappresentazione di una chiave utente
 pubblica mediante una stringa digitabile dall\'utente con correzione
@@ -157,30 +139,27 @@ degli errori.
 
 La struttura generale della transazione rimane quasi identica a quella
 di Bitcoin: ogni utente può scegliere diversi pagamenti (transaction
-outputs), firmarli con le corrispondenti chiavi private e inviarli a
+outputs), firmarli con le chiavi private corrispondenti e inviarli a
 diverse destinazioni.\
-Contrariamente al modello di Bitcoin, dove un utente possiede sia le
-chiavi uniche private e pubbliche, in questo modello un mittente genera
-una chiave one-time basata sull'indirizzo del destinatario e su alcuni
+Contrariamente al modello di Bitcoin, in cui un utente possiede sia le
+chiavi uniche private che pubbliche, nel modello proposto un mittente genera
+una chiave one-time publica basata sull'indirizzo del destinatario e su alcuni
 dati. In questo senso, una transazione in entrata per lo stesso
-destinatario viene inviata a una chiave pubblica una tantum (non
-direttamente a un indirizzo unico) e solo il destinatario può recuperare
+destinatario viene inviata a una chiave pubblica monouso (non
+direttamente a un indirizzo univoco) e solo il destinatario può recuperare
 la parte privata corrispondente per riscattare i suoi fondi (utilizzando
-la sua chiave privata unica). Il destinatario può spendere usando la
-struttura ad anello, mantenendo anonimi il suo possesso e la sua spesa
-effettiva.
+la sua chiave privata unica). Il destinatario può spendere usando una firma ad anello, mantenendo anonima la sua proprietà e la sua effettiva spesa.
 
 ## Funzionamento delle transazioni
 
 Gli indirizzi Bitcoin classici, una volta pubblicati, diventano
-identificatori univoci per ogni pagamento in entrata, collegandoli tra
-loro e legandoli al destinatario. 
+identificatori inequivocabili  per ogni pagamento in entrata, collegandoli tra loro e associandoli al destinatario. 
 
  ![](media/image6.png)
 
 Viene proposta una soluzione che
 consente all\'utente di pubblicare un singolo indirizzo e ricevere
-pagamenti incondizionati e non collegabili. La destinazione di ciascun
+pagamenti incondizionati non collegabili. La destinazione di ciascun
 output (di default) è una chiave pubblica unica, derivata
 dall\'indirizzo del destinatario e dall\'iniezione di dati casuali da
 parte del mittente.\
@@ -189,25 +168,25 @@ parte del mittente.\
 
 Innanzitutto, il mittente esegue il protocollo di scambio Diffie-Hellman
 per ottenere un segreto condiviso dai suoi dati e da una metà
-dell\'indirizzo. Poi calcola una chiave di destinazione una tantum,
+dell\'indirizzo. Successivamente calcola una chiave di destinazione monouso,
 utilizzando questi segreti e la seconda metà. Per questi due passaggi
 sono necessarie due chiavi ec-keys del destinatario; quindi, un
 indirizzo CryptoNote standard è grande quasi il doppio di un indirizzo
 Bitcoin. Il destinatario esegue anche il protocollo Diffie-Hellman e poi
 recupera la chiave segreta corrispondente.
 
-Una sequenza di transazione standard procede come segue:
+Una transazione standard procede come segue:
 
 1.  Alice vuole inviare un pagamento a Bob, che ha pubblicato il suo
-    indirizzo. Lo decomprime e ottiene la chiave utente pubblica di Bob (A, B).
+    indirizzo. Lo decomprime e ottiene la chiave utente pubblica di Bob *(A, B)*.
 
-2.  Alice genera un numero casuale 𝑟 ∈\[1,𝑙−1\] e calcola la chiave
+2.  Alice genera un numero casuale 𝑟 ∈ \[1,𝑙−1\] e calcola la chiave
     pubblica one-time 𝑃=𝐻𝑠(𝑟𝐴)𝐺+𝐵.
 
 3.  Alice usa 𝑃 come chiave di destinazione per l\'output e inserisce
     anche il valore 𝑅=𝑟𝐺 (come parte del protocollo Diffie-Hellman) da
     qualche parte nella transazione. Alice può creare altri output con
-    chiavi pubbliche uniche: chiavi diverse dei destinatari (𝐴𝑖,𝐵𝑖)
+    chiavi pubbliche uniche: chiavi diverse dei destinatari *(𝐴𝑖,𝐵𝑖)*
     implicano 𝑃𝑖​ diversi anche con lo stesso 𝑟.
 
     ![](media/image3.png)
@@ -223,24 +202,24 @@ Una sequenza di transazione standard procede come segue:
     ![](media/image4.png)
 
 Di conseguenza, Bob riceve pagamenti in entrata associati a chiavi
-pubbliche una tantum che non possono essere collegate a un osservatore
+pubbliche monouso che non possono essere collegate per un osservatore
 esterno.
 
 ### Firme ad anello
 
-Un protocollo basato su firme ad anello una tantum consente agli utenti
+Un protocollo basato su firme ad anello monouso consente agli utenti
 di ottenere un\'anonimato incondizionato. Purtroppo, i tipi ordinari di
 firme crittografiche permettono di tracciare le transazioni ai
-rispettivi mittenti e destinatari. La soluzione proposta usa diverse
+rispettivi mittenti e destinatari. La *one-time ring signature* usa diverse
 tipi di firme, consiste di quattro algoritmi (**GEN, SIG, VER, LNK**).
 
-- **GEN** prende parametri pubblici e restituisce una coppia ec (P, x) e
-una chiave pubblica I.\
+- **GEN** prende parametri pubblici e restituisce una coppia ec *(P, x)* e
+una chiave pubblica I.
 - **SIG** riceve un messaggio m, un insieme S' di chiavi pubbliche
-{Pi}i≠s, le coppie (Ps, xs) e restituisce una firma σ e un insieme S =
-S' ∪ {Ps}.\
+{Pi}i≠s, le coppie *(Ps, xs)* e restituisce una firma σ e un insieme S =
+S' ∪ {Ps}.
 - **VER** riceve un messaggio m, un insieme S, una firma σ e restituisce
-\"true\" o \"false\".\
+\"true\" o \"false\".
 - **LNK** riceve un insieme I = {Ii}, una firma σ e restituisce \"linked\"
 o \"indep\".
 
@@ -262,9 +241,30 @@ di n - 1 chiavi pubbliche di altri utenti 𝑃𝑖, la propria coppia di
 chiavi (x, P) e l\'immagine della chiave I. Sia 1≤𝑠≤𝑛 l\'indice segreto
 del firmatario in S (in modo che la sua chiave sia 𝑃𝑠).\
 Si sceglie casualmente un elemento casuale da {qi \| i = 1 \... n} e {wi
-\| i = 1 \... n, i ≠ s} da (1 \... l) e effettua i seguenti passaggi:\
-![Immagine che contiene testo, schermata, Carattere, numero Descrizione
-generata automaticamente](media/image1.png)
+\| i = 1 \... n, i ≠ s} da (1 \... l) e effettua i seguenti passaggi:
+$$ L_i = \begin{cases} q_iG, & \text{se } i = s \\ q_iG+w_iP_i, & \text{se } i \neq s \end{cases} $$
+
+$$ R_i = \begin{cases} q_iH_p(P_i), & \text{se } i = s \\ q_iH_p(P_{i})+ w_iI, & \text{se } i \neq s \end{cases} $$
+
+Il prossimo passo è ottenere la sfida non interattiva:
+
+$$ c = H_s(m, L_1, \ldots, L_n, R_1, \ldots, R_n) $$
+
+Infine il firmatario calcola la risposta:
+
+$$ c_i = \begin{cases} w_i, & \text{se } i \neq s \\ \left(c -\sum_{i=1}^{n} c_i\right) \mod l, & \text{se } i = s \end{cases} $$
+
+$$ r_i = \begin{cases} q_i, & \text{se } i \neq s \\ q_s - c_sx \mod l ,& \text{se } i=s \end{cases} $$
+
+La firma risultante è $$ \sigma= (I,c_1,\ldots,c_n,r_1,\ldots,r_n). $$:
+
+**VER**: Chi sta verificando controlla la firma, ricostruendo:
+
+$$ \begin{cases}
+L_i' = r_iG + c_iP_i \\
+R_i' = r_iH_p(P_i) + c_iI
+\end{cases}
+ $$
 Chi verifica controlla se $$\sum_{i=1}^{n} ci =^? H_s(m,L_1',...,L_n',R_1',...R_n') \mod l $$
 
 Se questa uguaglianza è vera, chi verifica esegue l\'algoritmo **LNK**,
@@ -320,7 +320,7 @@ esclusivamente sulla velocità computazionale del processore, quindi è
 perfettamente adatto per l\'implementazione multicore/conveyer.
 Tuttavia, i computer moderni non sono limitati solo dal numero di
 operazioni al secondo, ma anche dalla dimensione della memoria. Mentre
-alcuni processori possono essere notevolmente più veloci di altri, le
+alcuni processori possono essere notevolmente più veloci di altri [9^], le
 dimensioni della memoria sono meno probabili che varino tra le
 macchine.\
 L\'idea principale è costruire un algoritmo che alloca un ampio blocco
@@ -330,30 +330,27 @@ sufficientemente grande per rendere più vantaggioso conservare i dati
 piuttosto che ricalcolarli ad ogni accesso. L\'algoritmo dovrebbe
 inoltre impedire il parallelismo interno, quindi N thread simultanei
 dovrebbero richiedere N volte più memoria contemporaneamente.\
-Dwork et al \[29\] hanno investigato e formalizzato questo approccio,
+Dwork et al [16^] hanno investigato e formalizzato questo approccio,
 portandoli a suggerire un\'altra variante della funzione di pricing:
-\"Mbound\". Un altro lavoro appartiene a F. Coelho \[30\], che ha
-proposto la soluzione più efficace: \"Hokkaido\". Per quanto ne
-sappiamo, l\'ultimo lavoro basato sull\'idea di ricerche pseudo-casuali
+\"Mbound\". Un altro lavoro appartiene a F. Coelho [17^], che ha
+proposto la soluzione più efficace: \"Hokkaido\". Con ogni probabilità, l\'ultimo lavoro è basato sull\'idea di ricerche pseudo-casuali
 in un grande array è l\'algoritmo noto come \"scrypt\" di C. Percival
-\[31\]. A differenza delle funzioni precedenti, si concentra sulla
+[18^]. A differenza delle funzioni precedenti, si concentra sulla
 derivazione delle chiavi e non sui sistemi di proof-of-work. Nonostante
-questo fatto, scrypt può servire il nostro scopo: funziona bene come
-funzione di pricing nel problema di conversione parziale dell\'hash come
-SHA-256 in Bitcoin.\
-Per ora lo script è stato applicato a Litcoiun, questo permette ai miner
+ciò, scrypt funziona bene come funzione di prezzo nel problema di conversione dell'hash parziale come SHA-256 in Bitcoin.\
+Per ora lo script è stato applicato a Litecoin [19^], ma la sua implementazione non è veramente legata alla memoria: il rapporto "tempo di accesso alla memoria / tempo complessivo" non è abbastanza grande perché ogni istanza utilizza solo 128 KB, questo dunque permette ai miner
 GPU di essere 10 volte più efficienti lasciando la possibilità di creare
 dispositivi di mining efficienti e relativamente economici.\
-Si propone un nuovo algoritmo memory-bound per la proof-of-work. Si basa
+CryptoNote propone quindi un nuovo algoritmo memory-bound per la proof-of-work. Si basa
 sull\'accesso casuale a una memoria lenta e sottolinea la dipendenza
 dalla latenza. A differenza di scrypt, ogni nuovo blocco (lungo 64 byte)
 dipende da tutti i blocchi precedenti e non solo da uno, quindi il
 compromesso tra dimensione della memoria e velocità della CPU diventa
-esponenziale. Il nostro algoritmo richiede circa 2 Mb per istanza per i
+esponenziale. Il nuovo algoritmo richiede circa 2 Mb per istanza per i
 seguenti motivi:
 
 - Si adatta alla cache L3 (per core) dei processori moderni, che
-diventeranno comuni tra qualche anno;
+diventeranno mainstream tra qualche anno;
 
 - Un megabyte di memoria interna è quasi una dimensione inaccettabile per
 il moderno pipeline ASIC;
@@ -381,7 +378,7 @@ una restrizione naturale basata solo su limiti di implementazione, non
 su intuizioni come \"N monete dovrebbero essere sufficienti per
 chiunque\".
 
-Per garantire la regolarità del processo di emissione, utilizziamo la
+Per garantire la regolarità del processo di emissione, viene utilizzata la
 seguente formula per le ricompense dei blocchi: $$
 \text{BaseReward} = (\text{MSupply} - A) >> 18 $$
 
@@ -395,7 +392,7 @@ calcola il rapporto tra la difficoltà effettiva e quella target tra gli
 ultimi 2016 blocchi e lo utilizza come moltiplicatore per la difficoltà
 attuale. Ovviamente questo è inadatto per ricalcoli rapidi (a causa
 dell\'inerzia elevata) e porta a oscillazioni. L\'idea generale dietro
-il nostro algoritmo è sommare tutto il lavoro completato dai nodi e
+l'algoritmo è sommare tutto il lavoro completato dai nodi e
 dividerlo per il tempo impiegato per completare il lavoro. La misura del
 lavoro sono i valori di difficoltà corrispondenti in ogni blocco.
 
@@ -705,6 +702,51 @@ Il diagramma sottostante rappresenta il calcolo del risultato:
 
 
 
+[1^] Tatsuaki Okamoto, Kazuo Ohta, "Universal Electronic Cash," Advances in Cryp-tology | CRYPTO '91, LNCS 576, pp. 324-337, 1991.
+
+[2^] Hart, P. E.; Nilsson, N. J.; Raphael, B. (1968). "A Formal Basis for the Heuristic Determination of Minimum Cost Paths". IEEE Transactions on Systems Science and Cybernetics SSC4 4 (2): 100-107.
+
+[3^] Fergal Reid, Martin Harrigan, \An Analysis of Anonymity in the Bitcoin System",2012.
+
+[4^] Kay Hamacher, Stefan Katzenbeisser, \Bitcoin - An Analysis", 2011, http://www.youtube.com/watch?v=hlWyTqL1hFA
+
+[5^] Dorit Ron, Adi Shamir, \Quantitative Analysis of the Full Bitcoin Transaction Graph", 2012.
+
+[6^] https://en.bitcoin.it/wiki/Category:Mixing_Services
+
+[7^] http://blog.ezyang.com/2012/07/secure-multiparty-bitcoin-anonymization
+
+[8^] https://en.bitcoin.it/wiki/BIP_0034#Specification
+
+[9^] https://en.bitcoin.it/wiki/Mining_hardware_comparison
+
+[10^] https://en.bitcoin.it/wiki/Contracts
+
+[11^] https://en.bitcoin.it/wiki/Script
+
+[12^] D. Chaum and E. van Heyst (1991). "Group signatures". Advances in Cryptology| EUROCRYPT '91, volume 547 of Lecture Notes in Computer Science. pp. 257-265.
+
+[13^] Ronald L. Rivest , Adi Shamir , Yael Tauman, How to Leak a Secret, Proceedings of
+the 7th International Conference on the Theory and Application of Cryptology and
+Information Security: Advances in Cryptology, p.552-565, December 09-13, 2001
+
+[14^] Fujisaki, E., Suzuki, K.: Traceable ring signature. IEICE Trans. of Fund. E91-A(1),
+83-93 (2008); Presented in PKC 2007, LNCS 4450
+
+[15^] D. J. Bernstein, N. Duif, T. Lange, P. Schwabe, B. Yang, \High-speed high-security
+signatures",Journal of Cryptographic Engineering, September 2012, Volume 2, Issue
+2, pp 77-89
+
+[16^] Cynthia Dwork, Andrew Goldberg, and Moni Naor. On memory-bound functions
+for fighting spam. In Advances in Cryptology | CRYPTO 2003, volume 2729 of
+Lecture Notes in Computer Science, pages 426-444. Springer, 2003.
+
+[17^] Fabien Coelho, Exponential Memory-Bound Functions for Proof of Work Protocols, 2005
+
+[18^] [31] Colin Percival, Stronger Key Derivation via Sequential Memory-Hard Functions,
+presented at BSDCan'09, May 2009
+
+[19^] http://litecoin.org
 
 [1^][https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.197.pdf]
 
